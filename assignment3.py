@@ -1,8 +1,5 @@
 #!/usr/bin/python
 
-#LAS LINEAS QUE ACABAN CON # SON ELIMINABLES SI NO SE QUIEREN TENER 
-#EN FICHERO EL LEXICON (CON LOS 250 PRIMEROS) Y LEXICONCLEAN (SIN)
-
 import sys, operator
 
 from sys import argv
@@ -28,18 +25,18 @@ def readInput(file):
 readInput(argv[1])
 lexicon = sorted(lexicon.items(), key = operator.itemgetter(1), reverse = True)
 
-with open('lexicon.txt','wb') as file:					#
-	for key, value in lexicon:							#
-		w = key + '\t' + str(value) + '\n'				#
-		file.write(w)									#
+#with open('lexicon.txt','wb') as file:					
+#	for key, value in lexicon:							
+#		w = key + '\t' + str(value) + '\n'				
+#		file.write(w)									
 
 lexiconClean = {}
 
-with open('lexiconClean.txt','wb') as file:				#
+with open('lexiconClean.txt','wb') as file:				
 	clean = 0;
 	for key, value in lexicon:
 		if clean > 249:
-			w = key + '\t' + str(value) + '\n'			#
-			file.write(w)								#
+			w = key + '\t' + str(value) + '\n'			
+			file.write(w)								
 			lexiconClean[key] = value
 		clean += 1
