@@ -1,11 +1,14 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import sys, operator
 
 from sys import argv
 from operator import itemgetter
 
-lexicon = {}
+#Lexicon
+
+aux = {}
 
 def readInput(file):
 	with open(file, 'r') as f:
@@ -16,27 +19,46 @@ def readInput(file):
 					times = int(word)
 					count += 1
 				else:
-					if lexicon.has_key(word):
-						lexicon[word] += times
+					if aux.has_key(word):
+						aux[word] += times
 					else:
-						lexicon[word] = times
+						aux[word] = times
 	return
 	
 readInput(argv[1])
-lexicon = sorted(lexicon.items(), key = operator.itemgetter(1), reverse = True)
+aux = sorted(aux.items(), key = operator.itemgetter(1), reverse = True)							
 
-#with open('lexicon.txt','wb') as file:					
-#	for key, value in lexicon:							
-#		w = key + '\t' + str(value) + '\n'				
-#		file.write(w)									
-
-lexiconClean = {}
+lexicon = {}
+BagOfWords = {}
 
 with open('lexiconClean.txt','wb') as file:				
 	clean = 0;
-	for key, value in lexicon:
+	for key, value in aux:
 		if clean > 249:
 			w = key + '\t' + str(value) + '\n'			
 			file.write(w)								
-			lexiconClean[key] = value
+			lexicon[key] = value
 		clean += 1
+
+#Bag of Words
+		
+with open(sys.argv[1], 'rb') as f:
+    target = sys.argv[2]
+    for line in f:
+        if target in line:
+            words = line.split()
+            freq = int(words[0])
+            for i in range(1,len(words)):
+                word = words[i]
+                if word != target and lexicon.has_key(word):
+                    if not BagOfWords.get(word):
+                        BagOfWords[word] = 0
+                    BagOfWords[word] += freq
+					
+print ''
+print '-------Bag of words for ' + sys.argv[2] + '-------'
+print '{'
+for key,val in BagOfWords.iteritems():
+    print '    ' + key + ': ' + str(val)
+print '}'
+print '-------------------------------------'
