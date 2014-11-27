@@ -6,7 +6,7 @@ import sys, operator
 from sys import argv
 from operator import itemgetter
 
-#Lexicon
+#Lexicon Task
 
 aux = {}
 
@@ -40,7 +40,7 @@ with open('lexiconClean.txt','wb') as file:
 			lexicon[key] = value
 		clean += 1
 
-#Bag of Words
+#Bag of Words Task
 		
 with open(sys.argv[1], 'rb') as f:
     target = sys.argv[2]
