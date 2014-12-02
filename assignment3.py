@@ -61,20 +61,19 @@ def tfidfRepresentation(word, nContexts, lexicon):
 		dij[jWord] = dijComputation(jWord,nContexts,lexicon,lexicon[jWord])
 	return dij
 
-def similarity(dij1, dij2, bow1, bow2):
+def similarity(dij1, dij2):
 	d1 = {}
-	for key, val in bow1.iteritems():
+	for key, val in dij1.iteritems():
 		val2 = 0
-		if bow2.has_key(key):
-			val2 = bow2[key]
+		if dij2.has_key(key):
+			val2 = dij2[key]
 		d1[key] = (val,val2)
-	for key, val2 in bow2.iteritems():
+	for key, val2 in dij2.iteritems():
 		if not d1.has_key(key):
 			d1[key] = (0,val2)
 	v1 = []
 	v2 = []
-	for key, val in d1.iteritems():
-		(val1,val2) = val
+	for key, (val1,val2) in d1.iteritems():
 		v1.append(val1)
 		v2.append(val2)
 	norm1 = np.linalg.norm(v1)
@@ -84,12 +83,10 @@ def similarity(dij1, dij2, bow1, bow2):
 
 def similarWords(word, nContexts, lexicon, file):
 	similars = {}
-	bow1 = bagOfWords(file, word)
 	dij1 = tfidfRepresentation(word,nContexts,lexicon)
-	for w, freq in bow1.iteritems():
-		bow2 = bagOfWords(file,w)
+	for w, freq in lexicon.iteritems():
 		dij2 = tfidfRepresentation(w,nContexts,lexicon)
-		similars[w] = similarity(dij1,dij2,bow1,bow2)
+		similars[w] = similarity(dij1,dij2)
 	similiars = sorted(similars.items(),key = operator.itemgetter(1),reverse = True)	
 	return similars
 
@@ -122,7 +119,6 @@ numContexts = len(lexiconClean)
 #tfidf = tfidfRepresentation(argv[2],numContexts,lexiconClean)
 #printTfidf(tfidf)
 sim = similarWords(argv[2],numContexts,lexiconClean,argv[1])
-sim = sorted(sim.items(),key = operator.itemgetter(1),reverse = True)	
 for key, val in sim:
     print key + ' ' + str(val)
 
