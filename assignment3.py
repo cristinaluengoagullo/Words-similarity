@@ -61,29 +61,37 @@ def tfidfRepresentation(word, nContexts, lexicon):
 		dij[jWord] = dijComputation(jWord,nContexts,lexicon,lexicon[jWord])
 	return dij
 
-def similarity(word1, word2, nContexts, lexicon):
-        dij1 = tfidfRepresentation(word1,nContexts,lexicon)
-	dij2 = tfidfRepresentation(word2,nContexts,lexicon)
-        v1 = {}
-        v2 = {}
-        for key, val in lexicon.iteritems():
-               v1[key] = 0
-               v2[key] = 0
-        for word, val in dij1.iteritems():
-                v1[word] = val
-        for word, val in dij2.iteritems():
-                v2[word] = val
-        norm1 = np.linalg.norm(v1.values())
-        norm2 = np.linalg.norm(v2.values())
-        sim = np.dot(v1.values(),v2.values())/(norm1*norm2)
-        return sim
+def similarity(dij1, dij2, bow1, bow2):
+	d1 = {}
+	for key, val in bow1.iteritems():
+		val2 = 0
+		if bow2.has_key(key):
+			val2 = bow2[key]
+		d1[key] = (val,val2)
+	for key, val2 in bow2.iteritems():
+		if not d1.has_key(key):
+			d1[key] = (0,val2)
+	v1 = []
+	v2 = []
+	for key, val in d1.iteritems():
+		(val1,val2) = val
+		v1.append(val1)
+		v2.append(val2)
+	norm1 = np.linalg.norm(v1)
+	norm2 = np.linalg.norm(v2)
+	sim = np.dot(v1,v2)/float(norm1*norm2)
+	return sim	
 
-def similarWords(word, nContexts,lexicon):
-        similars = {}
-        for w, freq in lexicon.iteritems():
-                similars[w] = similarity(word,w,nContexts,lexicon)
-        similiars = sorted(similars.items(), key = operator.itemgetter(1), reverse = True)	
-        return similars
+def similarWords(word, nContexts, lexicon, file):
+	similars = {}
+	bow1 = bagOfWords(file, word)
+	dij1 = tfidfRepresentation(word,nContexts,lexicon)
+	for w, freq in bow1.iteritems():
+		bow2 = bagOfWords(file,w)
+		dij2 = tfidfRepresentation(w,nContexts,lexicon)
+		similars[w] = similarity(dij1,dij2,bow1,bow2)
+	similiars = sorted(similars.items(),key = operator.itemgetter(1),reverse = True)	
+	return similars
 
 def printBagOfWords(word, bagOfWords):					
 	print ''
@@ -106,16 +114,17 @@ def printTfidf(tfidf):
 	return
 	
 lexicon = lexicon(argv[1])
-lexicon = sorted(lexicon.items(), key = operator.itemgetter(1), reverse = True)							
+lexicon = sorted(lexicon.items(),key = operator.itemgetter(1),reverse = True)							
 lexiconClean = lexiconClean(lexicon)
 #bow = bagOfWords(argv[1],argv[2])
 #printBagOfWords(argv[2], bow)
 numContexts = len(lexiconClean)
 #tfidf = tfidfRepresentation(argv[2],numContexts,lexiconClean)
 #printTfidf(tfidf)
-sim = similarWords(argv[2],numContexts,lexiconClean)
+sim = similarWords(argv[2],numContexts,lexiconClean,argv[1])
+sim = sorted(sim.items(),key = operator.itemgetter(1),reverse = True)	
 for key, val in sim:
-        print key + ' ' + str(val)
+    print key + ' ' + str(val)
 
 
 
