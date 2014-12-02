@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import sys, operator, math
-
 from sys import argv
 from operator import itemgetter
+import numpy as np
 
 def lexicon(file):
 	lexicon = {}
@@ -58,9 +58,9 @@ def tfidfRepresentation(word, nContexts, lexicon):
 	bow = bagOfWords(argv[1],word)
 	dij = {}
 	for jWord, freq in bow.iteritems():
-		dij[jWord] = dijComputation(jWord,nContexts,lexicon,freq)
+		dij[jWord] = dijComputation(jWord,nContexts,lexicon,lexicon[jWord])
 	return dij
-	
+        
 def printBagOfWords(word, bagOfWords):					
 	print ''
 	print '-------Bag of words for ' + word + '-------'
