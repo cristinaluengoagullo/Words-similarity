@@ -19,7 +19,7 @@ def lexicon(file):
 					lexicon[words[i]] = times
 	return lexicon
 
-def bagOfWords(file, word):
+def bagOfWords(file, word, lexicon):
 	BagOfWords = {}
 	with open(file, 'rb') as f:
 		target = word
@@ -29,7 +29,7 @@ def bagOfWords(file, word):
 				freq = int(words[0])
 				for i in range(1,len(words)):
 					word = words[i]
-					if word != target and lexiconClean.has_key(word):
+					if word != target and lexicon.has_key(word):
 						if not BagOfWords.get(word):
 							BagOfWords[word] = 0
 						BagOfWords[word] += freq
@@ -39,7 +39,7 @@ def lexiconClean(lexicon):
 	lexiconClean = {}
 	with open('lexiconClean.txt','wb') as file:				
 		clean = 0;
-		for key, value in lexicon:
+		for key, value in sorted(lexicon.items(), key=lambda x: x[1], reverse=True):
 			if clean > 249:
 				w = key + '\t' + str(value) + '\n'			
 				file.write(w)								
@@ -55,10 +55,10 @@ def dijComputation(jWord, nContexts, lexicon, tf):
 	return tf*idfComputation(jWord,nContexts,lexicon)
 
 def tfidfRepresentation(word, nContexts, lexicon):
-	bow = bagOfWords(argv[1],word)
+	bow = bagOfWords(argv[1],word,lexicon)
 	dij = {}
 	for jWord, freq in bow.iteritems():
-		dij[jWord] = dijComputation(jWord,nContexts,lexicon,lexicon[jWord])
+		dij[jWord] = dijComputation(jWord,nContexts,lexicon,bow[jWord])
 	return dij
 
 def similarity(dij1, dij2):
@@ -81,13 +81,12 @@ def similarity(dij1, dij2):
 	sim = np.dot(v1,v2)/float(norm1*norm2)
 	return sim	
 
-def similarWords(word, nContexts, lexicon, file):
+def similarWords(word, nContexts, lexicon):
 	similars = {}
 	dij1 = tfidfRepresentation(word,nContexts,lexicon)
 	for w, freq in lexicon.iteritems():
 		dij2 = tfidfRepresentation(w,nContexts,lexicon)
 		similars[w] = similarity(dij1,dij2)
-	similiars = sorted(similars.items(),key = operator.itemgetter(1),reverse = True)	
 	return similars
 
 def printBagOfWords(word, bagOfWords):					
@@ -111,15 +110,14 @@ def printTfidf(tfidf):
 	return
 	
 lexicon = lexicon(argv[1])
-lexicon = sorted(lexicon.items(),key = operator.itemgetter(1),reverse = True)							
 lexiconClean = lexiconClean(lexicon)
-#bow = bagOfWords(argv[1],argv[2])
-#printBagOfWords(argv[2], bow)
 numContexts = len(lexiconClean)
-#tfidf = tfidfRepresentation(argv[2],numContexts,lexiconClean)
+#bow = bagOfWords(argv[1],argv[2],lexiconClean)
+#printBagOfWords(argv[2],bow)
+#tfidf = tfidfRepresentation(argv[2],numContexts,lexicon)
 #printTfidf(tfidf)
-sim = similarWords(argv[2],numContexts,lexiconClean,argv[1])
-for key, val in sim:
+sim = similarWords(argv[2],numContexts,lexiconClean)
+for key, val in sorted(sim.items(), key=lambda x: x[1], reverse=True):
     print key + ' ' + str(val)
 
 
