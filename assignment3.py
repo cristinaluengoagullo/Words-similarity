@@ -7,7 +7,7 @@ from sys import argv
 from operator import itemgetter
 import numpy as np
 
-NUM_DISCARDS = 0
+NUM_DISCARDS = 250
 
 def lexicon(file):
 	lexi = {}
@@ -78,7 +78,7 @@ def tfidfRepresentation(word, contexts, nContexts):
         bow = contexts[word]
         dij = {}
 	for jWord, freq in bow.iteritems():
-		dij[jWord] = dijComputation(jWord,contexts,nContexts,bow[jWord])
+		dij[jWord] = float("{0:.4f}".format(dijComputation(jWord,contexts,nContexts,bow[jWord])))
 	return dij
 
 def similarity(dij1, dij2):
@@ -162,8 +162,12 @@ def printSimilarWords(word, sim):
 
 
 inFile = argv[1]
-target_word = argv[2]
-choice = argv[3]
+if len(argv) < 4:
+        target_word = ''
+        choice = argv[2]
+else:
+        target_word = argv[2]
+        choice = argv[3]
 lex = lexicon(inFile)
 lex = sorted(lex.items(),key = operator.itemgetter(1),reverse = True)
 lexClean = lexiconClean(lex)
