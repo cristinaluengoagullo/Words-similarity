@@ -7,7 +7,7 @@ from sys import argv
 from operator import itemgetter
 import numpy as np
 
-NUM_DISCARDS = 250
+NUM_DISCARDS = 0
 
 def lexicon(file):
 	lexi = {}
@@ -114,6 +114,28 @@ def similarWords(word, lexi, contexts, nContexts):
                 similars[w] = float("{0:.4f}".format(sim))
 	return similars
 
+def mostSimilarWords(lexi, contexts, nContexts):
+        similars = {}
+        for word1,f1 in lexi.iteritems():
+                dij1 = tfidfRepresentation(word1,contexts,nContexts)
+                for word2,f2 in lexi.iteritems():
+                        dij2 = tfidfRepresentation(word2,contexts,nContexts)
+                        sim = similarity(dij1,dij2)
+                        if word1 != word2:
+                                if not similars.has_key(word1):
+                                        similars[word1] = {}
+                                similars[word1][word2] = sim
+        maxSim = -1
+        maxWord1 = ''
+        maxWord2 = ''
+        for word1, sims in similars.iteritems():
+                for word2, val in sims.iteritems():
+                        if val > maxSim and val != 1.0:
+                                maxSim = val
+                                maxWord1 = word1
+                                maxWord2 = word2
+        return (maxWord1,maxWord2,maxSim)
+                        
 def printBagOfWords(word, bagOfWords):					
 	print ''
 	print '-------Bag of words for ' + word + '-------'
@@ -123,29 +145,43 @@ def printBagOfWords(word, bagOfWords):
 	print '}'
 	print '-------------------------------------'
 	
-def printTfidf(tfidf):
+def printTfidf(word, tfidf):
 	print ''
-	print '-------- tfidf Representation -------'
+	print '-------- tfidf Representation for ' + word + '  -------'
 	print '{'
 	for key, val in tfidf.iteritems():
 		print '    ' + key + ': ' + str(val)
 	print '}'
 	print '-------------------------------------'
 
+def printSimilarWords(word, sim):
+        print '-------- Similar words to ' + word + '  -------'
+        sim = sorted(sim.items(),key = operator.itemgetter(1),reverse = True)
+        for key, val in sim:
+                print key + ' ' + str(val)
+
+
 inFile = argv[1]
 target_word = argv[2]
+choice = argv[3]
 lex = lexicon(inFile)
 lex = sorted(lex.items(),key = operator.itemgetter(1),reverse = True)
 lexClean = lexiconClean(lex)
 numContexts = len(lexClean)
 contexts = bagsOfWords(target_word,inFile,lexClean)
-#bow = contextsPresent[target_word]
-#for w,f in bow.iteritems():
-#        print w + ' -> ' + str(f)
-sim = similarWords(target_word,lexClean,contexts,numContexts)
-sim = sorted(sim.items(),key = operator.itemgetter(1),reverse = True)	
-for key, val in sim:
-    print key + ' ' + str(val)
+if choice == 'bow':
+        bow = contexts[target_word]
+        printBagOfWords(target_word,bow)
+if choice == 'tfidf':
+        tfidf = tfidfRepresentation(target_word,contexts,numContexts)
+        printTfidf(target_word,tfidf)
+if choice == 'similarity':
+        sim = similarWords(target_word,lexClean,contexts,numContexts)
+        printSimilarWords(target_word,sim)
+if choice == 'maxSimilarity':
+        (maxWord1,maxWord2,maxSim) = mostSimilarWords(lexClean,contexts,numContexts)
+        print maxWord1 + ' and ' + maxWord2 + ' -> ' + str("{0:.4f}".format(maxSim))
+
 
 
 
