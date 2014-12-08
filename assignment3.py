@@ -10,48 +10,45 @@ import numpy as np
 NUM_DISCARDS = 250
 
 def lexicon(file):
-	lexicon = {}
+	lexi = {}
 	with open(file, 'r') as f:
 		for line in f:
 			words = line.split()
 			freq = int(words[0])
 			for i in range(1,len(words)):
-				if lexicon.has_key(words[i]):
-					lexicon[words[i]] += freq
+				if lexi.has_key(words[i]):
+					lexi[words[i]] += freq
 				else:
-					lexicon[words[i]] = freq
-	return lexicon
+					lexi[words[i]] = freq
+	return lexi
 
-def lexiconClean(lexicon):
-	lexiconClean = {}
-#	with open('lexiconClean.txt','wb') as file:
+def lexiconClean(lexi):
+	lexiClean = {}
         clean = 0;
-        for key, value in lexicon:
+        for key, value in lexi:
                 if clean > NUM_DISCARDS-1:
-#				w = key + '\t' + str(value) + '\n'			
-#				file.write(w)
-                        lexiconClean[key] = value
+                        lexiClean[key] = value
                 clean += 1
-	return lexiconClean
+	return lexiClean
 
-def bagsOfWords(target, inFile, lexicon):
+def bagsOfWords(target, inFile, lexi):
         contexts = {}
 	with open(inFile, 'rb') as f:
 		for line in f:
                         words = line.split()
                         freq = int(words[0])
-                        for word1 in words:
-                                if word1 == target or lexicon.has_key(word1):
+                        for word1 in words[1:]:
+                                if word1 == target or lexi.has_key(word1):
                                         if not contexts.has_key(word1):
-                                                                contexts[word1] = {}
+                                                contexts[word1] = {}
                                         for word2 in words:
-                                                if word1 != word2 and lexicon.has_key(word2):
+                                                if word1 != word2 and lexi.has_key(word2):
                                                         if not contexts[word1].has_key(word2):
                                                                 contexts[word1][word2] = 0
                                                         contexts[word1][word2] += freq
         return contexts
                                                 
-def bagOfWords(inFile, word, lexicon):
+def bagOfWords(inFile, word, lexi):
 	BagOfWords = {}
 	with open(inFile, 'rb') as f:
 		for line in f:
@@ -60,7 +57,7 @@ def bagOfWords(inFile, word, lexicon):
 				freq = int(words[0])
 				for i in range(1,len(words)):
 					w = words[i]
-					if w != word and lexicon.has_key(w):
+					if w != word and lexi.has_key(w):
 						if not BagOfWords.get(w):
 							BagOfWords[w] = 0
 						BagOfWords[w] += freq
@@ -69,15 +66,15 @@ def bagOfWords(inFile, word, lexicon):
 def idfComputation(jWord, contexts, nContexts):
         nContextsPresent = len(contexts[jWord])
         if nContextsPresent > 0:
-                df = nContexts/nContextsPresent
-                return math.log(df,10)
+                df = nContextsPresent/nContexts
+                return -math.log(df,10)
         return 0
 	
 def dijComputation(jWord, contexts, nContexts, tf):
         idf = idfComputation(jWord,contexts,nContexts)
         return tf*idf
 
-def tfidfRepresentation(word, contexts, lexicon, nContexts):
+def tfidfRepresentation(word, contexts, nContexts):
         bow = contexts[word]
         dij = {}
 	for jWord, freq in bow.iteritems():
@@ -108,11 +105,11 @@ def similarity(dij1, dij2):
                 sim = 0.0
         return sim	
 
-def similarWords(word, lexicon, contexts, nContexts):
+def similarWords(word, lexi, contexts, nContexts):
 	similars = {}
-	dij1 = tfidfRepresentation(word,contexts,lexicon,nContexts)
-	for w, freq in lexicon.iteritems():
-		dij2 = tfidfRepresentation(w,contexts,lexicon,nContexts)
+	dij1 = tfidfRepresentation(word,contexts,nContexts)
+	for w, freq in lexi.iteritems():
+		dij2 = tfidfRepresentation(w,contexts,nContexts)
                 sim = similarity(dij1,dij2)
                 similars[w] = float("{0:.4f}".format(sim))
 	return similars
@@ -137,15 +134,15 @@ def printTfidf(tfidf):
 
 inFile = argv[1]
 target_word = argv[2]
-lexicon = lexicon(inFile)
-lexicon = sorted(lexicon.items(),key = operator.itemgetter(1),reverse = True)
-lexiconClean = lexiconClean(lexicon)
-numContexts = len(lexiconClean)
-contexts = bagsOfWords(target_word,inFile,lexiconClean)
+lex = lexicon(inFile)
+lex = sorted(lex.items(),key = operator.itemgetter(1),reverse = True)
+lexClean = lexiconClean(lex)
+numContexts = len(lexClean)
+contexts = bagsOfWords(target_word,inFile,lexClean)
 #bow = contextsPresent[target_word]
 #for w,f in bow.iteritems():
 #        print w + ' -> ' + str(f)
-sim = similarWords(target_word,lexiconClean,contexts,numContexts)
+sim = similarWords(target_word,lexClean,contexts,numContexts)
 sim = sorted(sim.items(),key = operator.itemgetter(1),reverse = True)	
 for key, val in sim:
     print key + ' ' + str(val)
