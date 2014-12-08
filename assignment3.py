@@ -34,14 +34,14 @@ def lexiconClean(lexicon):
                 clean += 1
 	return lexiconClean
 
-def bagsOfWords(inFile, lexicon):
+def bagsOfWords(target, inFile, lexicon):
         contexts = {}
 	with open(inFile, 'rb') as f:
 		for line in f:
                         words = line.split()
                         freq = int(words[0])
                         for word1 in words:
-                                if lexicon.has_key(word1):
+                                if word1 == target or lexicon.has_key(word1):
                                         if not contexts.has_key(word1):
                                                                 contexts[word1] = {}
                                         for word2 in words:
@@ -68,9 +68,10 @@ def bagOfWords(inFile, word, lexicon):
 
 def idfComputation(jWord, contexts, nContexts):
         nContextsPresent = len(contexts[jWord])
-        #print jWord + ' -> ' + str(nContextsPresent)
-	df = nContexts/nContextsPresent
-	return math.log(df,10)
+        if nContextsPresent > 0:
+                df = nContexts/nContextsPresent
+                return math.log(df,10)
+        return 0
 	
 def dijComputation(jWord, contexts, nContexts, tf):
         idf = idfComputation(jWord,contexts,nContexts)
@@ -140,7 +141,7 @@ lexicon = lexicon(inFile)
 lexicon = sorted(lexicon.items(),key = operator.itemgetter(1),reverse = True)
 lexiconClean = lexiconClean(lexicon)
 numContexts = len(lexiconClean)
-contexts = bagsOfWords(inFile,lexiconClean)
+contexts = bagsOfWords(target_word,inFile,lexiconClean)
 #bow = contextsPresent[target_word]
 #for w,f in bow.iteritems():
 #        print w + ' -> ' + str(f)
