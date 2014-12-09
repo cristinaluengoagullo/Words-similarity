@@ -81,6 +81,12 @@ def tfidfRepresentation(word, contexts, nContexts):
 		dij[jWord] = float("{0:.4f}".format(dijComputation(jWord,contexts,nContexts,bow[jWord])))
 	return dij
 
+def tfidfsComputation(lex, contexts, nContexts):
+        tfidf = {}
+        for word,f in lex.iteritems():
+                tfidf[word] = tfidfRepresentation(word,contexts,nContexts)
+        return tfidf
+
 def similarity(dij1, dij2):
 	d1 = {}
 	for key, val in dij1.iteritems():
@@ -114,17 +120,19 @@ def similarWords(word, lexi, contexts, nContexts):
                 similars[w] = float("{0:.4f}".format(sim))
 	return similars
 
-def mostSimilarWords(lexi, contexts, nContexts):
+def mostSimilarWords(lexi, tfidfs, nContexts):
         similars = {}
         for word1,f1 in lexi.iteritems():
-                dij1 = tfidfRepresentation(word1,contexts,nContexts)
+                print word1
+                dij1 = tfidfs[word1]
                 for word2,f2 in lexi.iteritems():
-                        dij2 = tfidfRepresentation(word2,contexts,nContexts)
-                        sim = similarity(dij1,dij2)
-                        if word1 != word2:
-                                if not similars.has_key(word1):
-                                        similars[word1] = {}
-                                similars[word1][word2] = sim
+                        if not similars.has_key(word2) or (similars.has_key(word2) and not similars[word2].has_key(word1)):
+                                dij2 = tfidfs[word2]
+                                sim = similarity(dij1,dij2)
+                                if word1 != word2:
+                                        if not similars.has_key(word1):
+                                                similars[word1] = {}
+                                        similars[word1][word2] = sim
         maxSim = -1
         maxWord1 = ''
         maxWord2 = ''
@@ -183,7 +191,9 @@ if choice == 'similarity':
         sim = similarWords(target_word,lexClean,contexts,numContexts)
         printSimilarWords(target_word,sim)
 if choice == 'maxSimilarity':
-        (maxWord1,maxWord2,maxSim) = mostSimilarWords(lexClean,contexts,numContexts)
+        tfidfs = tfidfsComputation(lexClean,contexts,numContexts)
+        print 'END'
+        (maxWord1,maxWord2,maxSim) = mostSimilarWords(lexClean,tfidfs,numContexts)
         print maxWord1 + ' and ' + maxWord2 + ' -> ' + str("{0:.4f}".format(maxSim))
 
 
