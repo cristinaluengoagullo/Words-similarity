@@ -54,7 +54,7 @@ def bagsOfWords(target, inFile, lexi):
                                                 # The context of a word will be the words that are
                                                 # different from it, belong to the lexicon, and appear
                                                 # in the same 5-grams as it
-                                                if word1 != word2 and lexi.has_key(word2):
+                                                if word1 != word2:
                                                         if not contexts[word1].has_key(word2):
                                                                 contexts[word1][word2] = 0
                                                         contexts[word1][word2] += freq
@@ -76,11 +76,12 @@ def dijComputation(jWord, contexts, nContexts, tf):
         return tf*idf
 
 # Function to compute the TF-IDF representation of a given word
-def tfidfRepresentation(word, contexts, nContexts):
+def tfidfRepresentation(word, contexts, lex, nContexts):
         bow = contexts[word]
         dij = {}
 	for jWord, freq in bow.iteritems():
-		dij[jWord] = float("{0:.4f}".format(dijComputation(jWord,contexts,nContexts,bow[jWord])))
+                if lex.has_key(jWord):
+                        dij[jWord] = float("{0:.4f}".format(dijComputation(jWord,contexts,nContexts,bow[jWord])))
 	return dij
 
 # Function to compute the TF-IDF representation of all the words in the lexicon (used to optimize
@@ -88,7 +89,7 @@ def tfidfRepresentation(word, contexts, nContexts):
 def tfidfsComputation(lex, contexts, nContexts):
         tfidf = {}
         for word,f in lex.iteritems():
-                tfidf[word] = tfidfRepresentation(word,contexts,nContexts)
+                tfidf[word] = tfidfRepresentation(word,contexts,lex,nContexts)
         return tfidf
 
 # Function to compute the similarity between two words from their vectorial representation.
@@ -129,9 +130,9 @@ def similarWords(word, lexi, contexts, nContexts):
         # We compute the TF-IDF representation of each pair of words and then we calculate
         # the similarity given their vectorial representations
 	similars = {}
-	dij1 = tfidfRepresentation(word,contexts,nContexts)
+	dij1 = tfidfRepresentation(word,contexts,lexi,nContexts)
 	for w, freq in lexi.iteritems():
-		dij2 = tfidfRepresentation(w,contexts,nContexts)
+		dij2 = tfidfRepresentation(w,contexts,lexi,nContexts)
                 sim = similarity(dij1,dij2)
                 similars[w] = float("{0:.4f}".format(sim))
 	return similars
@@ -168,12 +169,13 @@ def mostSimilarWords(lexi, tfidfs, nContexts):
         return (maxWord1,maxWord2,maxSim)
 
 # Function to print the bag of words of a given word
-def printBagOfWords(word, bagOfWords):					
+def printBagOfWords(word, bagOfWords, lex):					
 	print ''
 	print '-------Bag of words for ' + word + '-------'
 	print '{'
 	for key, val in bagOfWords.iteritems():
-		print '    ' + key + ': ' + str(val)
+		if lex.has_key(key):
+			print '    ' + key + ': ' + str(val)
 	print '}'
 	print '-------------------------------------'
 
@@ -213,7 +215,7 @@ contexts = bagsOfWords(target_word,inFile,lexClean)
 # Compute the bag of words of a given word
 if choice == 'bow':
         bow = contexts[target_word]
-        printBagOfWords(target_word,bow)
+        printBagOfWords(target_word,bow,lexClean)
 
 # Compute the TF-IDF representation of a given word
 if choice == 'tfidf':
